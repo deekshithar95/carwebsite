@@ -21,11 +21,10 @@ pipeline {
             }
         }
 
-        stage('Remove Old Container') {
+        stage('Remove Existing Container') {
             steps {
                 sh '''
-                docker stop $CONTAINER_NAME || true
-                docker rm $CONTAINER_NAME || true
+                docker rm -f $CONTAINER_NAME || true
                 '''
             }
         }
@@ -39,6 +38,15 @@ pipeline {
                 $IMAGE_NAME
                 '''
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'Deployment Successful'
+        }
+        failure {
+            echo 'Deployment Failed'
         }
     }
 }
