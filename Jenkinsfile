@@ -1,19 +1,42 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = "carwebsite"
+        CONTAINER_NAME = "carwebsite-container"
+    }
+
     stages {
 
-        stage('Clone') {
+        stage('Checkout Code') {
             steps {
-                git 'https://github.com/deekshithar95/carwebsite.git'
+                git branch: 'main',
+                url: 'https://github.com/deekshithar95/carwebsite.git'
             }
         }
 
-        stage('Deploy') {
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t $IMAGE_NAME .'
+            }
+        }
+
+        stage('Remove Old Container') {
             steps {
                 sh '''
-                sudo rm -rf /var/www/html/*
-                sudo cp -r * /var/www/html/
+                docker stop $CONTAINER_NAME || true
+                docker rm $CONTAINER_NAME || true
+                '''
+            }
+        }
+
+        stage('Deploy Website') {
+            steps {
+                sh '''
+                docker run -d \
+                --name $CONTAINER_NAME \
+                -p 80:80 \
+                $IMAGE_NAME
                 '''
             }
         }
